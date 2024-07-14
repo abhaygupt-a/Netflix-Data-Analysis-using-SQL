@@ -1,8 +1,12 @@
+-- ================================================================================================================================================================================================================================================
+--                                                                                          Project: Netflix Data Analysis using SQL
+-- ================================================================================================================================================================================================================================================
 
 
-
-
--- handling foreign characters by creating the schema and then appending the csv file from python
+-- ============================================================
+-- Section 1: Creating the Raw Data Table
+-- ============================================================
+-- Created the schema and appended the CSV file from Python using sqlalchemy
 
 create TABLE [netflix_db].[netflix_raw](
 	[show_id] [varchar](10) primary key,
@@ -17,11 +21,13 @@ create TABLE [netflix_db].[netflix_raw](
 	[duration] [varchar](10) NULL,
 	[listed_in] [varchar](100) NULL,
 	[description] [varchar](500) NULL
-);
+); -- the purpose was to handle the foriegn charcacters that were present in the title and to reduce the Space requirements of the Table
 
 select * from netflix_raw;
 
--- REMOVING THE DUPLICATES
+-- ============================================================
+-- Section 2: Removing the Duplicates
+-- ============================================================
 
 select show_id, count(*) 
 from netflix_raw
@@ -57,16 +63,21 @@ from netflix_raw
 select * from cte 
 where rn = 1; -- this table contains the desired results, we will use this table to do more modifications.
 
--- CREATING NEW AND SEPARATE TABLES FOR listed_in(genre), director, country, cast because these columns have mutiple values in one column
+-- ============================================================
+-- Section 3: Created Separate Tables to Normalize Data
+-- Description: Splited columns with multiple values into separate tables
+-- ============================================================
 
+
+-- Table for DIRECTORS
 select show_id, trim(value) as director
 into netflix_directors
 from netflix 
-cross apply string_split(director, ','); --
+cross apply string_split(director, ','); -- this splitted the multiple values present in one coulmn to separate columns 
 
 select * from netflix_directors;
 
-
+-- Table for GENRE
 select show_id, trim(value) as genre
 into netflix_genre
 from netflix 
@@ -74,7 +85,7 @@ cross apply string_split(listed_in, ',');
 
 select * from netflix_genre;
 
-
+-- Table for COUNTRIES
 select show_id, trim(value) as country
 into netflix_countries
 from netflix 
@@ -82,7 +93,7 @@ cross apply string_split(country, ',');
 
 select * from netflix_countries;
 
-
+-- Table for CAST
 select show_id, trim(value) as cast
 into netflix_cast
 from netflix 
@@ -91,7 +102,9 @@ cross apply string_split(cast, ',');
 select * from netflix_cast;
 
 
--- POPULATING MISSING VALUES IN COUNTRY
+-- ============================================================
+-- Section 4: Populated the missing values in COUNTRY
+-- ============================================================
 
 select director, country 
 from netflix_countries as nc inner join netflix_directors as nd
@@ -113,7 +126,9 @@ where n.country is null; -- POPULATED THE COUNTRY COLUMN WITH THE AVAILABLE OPTI
 
 select * from netflix_countries;
 
--- DATA TYPE CONVERSION FOR DATE_ADDED
+-- ============================================================
+-- Section 5: Data Type conversion
+-- ============================================================
 
 with cte as(
 select * ,
@@ -136,17 +151,20 @@ from netflix_raw
 select show_id, type, title, cast(date_added as date) as date_added, 
 release_year, rating, case when duration is null then rating else duration end as duration, description
 into netflix
-from cte;  -- this will work as the final clean table we have obtained after pre-processing
+from cte; 
+
+select * from netflix  -- this will work as the final clean table we have obtained after pre-processing
 
 
+-- ============================================================
+-- ============================================================
+-- Final Section: Data Analysis
+-- Description: Queries to answer different Questions
+-- ============================================================
+-- ============================================================
 
 
-
-
-
--- Netflix data analysis
-
-/*1  For each director count the no of movies and tv shows created by them in separate columns 
+/* 1 For each director count the no of movies and tv shows created by them in separate columns 
      for directors who have created tv shows and movies both */
 
 	 select nd.director,
@@ -157,9 +175,6 @@ from cte;  -- this will work as the final clean table we have obtained after pre
 	 on nd.show_id = nf.show_id
 	 group by nd.director
 	 having count(distinct nf.type) > 1 ;
-
-	
-
 
 
 /* 2 Which country has highest number of comedy movies */
@@ -174,7 +189,7 @@ group by  nc.country
 order by no_of_movies desc ; 
 
 
-/*3 For each year (as per date added to netflix), which director has maximum number of movies released*/
+/* 3 For each year (as per date added to netflix), which director has maximum number of movies released */
 
 
 with cte as (
@@ -192,7 +207,6 @@ from cte
 select * from cte2 where rn=1 ;
 
 
-
 /* 4 what is average duration of movies in each genre */
 
 
@@ -204,8 +218,7 @@ group by ng.genre
 order by avg_duration desc;
 
 
-
-/*5  find the list of directors who have created horror and comedy movies both.
+/* 5 find the list of directors who have created horror and comedy movies both.
 display director names along with number of comedy and horror movies directed by them */
 
 
