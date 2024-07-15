@@ -22,10 +22,10 @@ This project focuses on analyzing Netflix data to uncover viewer behaviors and c
 ### Data Collection and Loading
 
 #### Data Sources
-- Netflix dataset containing information about movies, TV shows, directors, cast, genres, countries, duration, and ratings.
+- Netflix dataset containing information about movies, TV shows, directors, cast, genres, countries, duration, and ratings downloaded from Kaggle.
 
 #### Data Loading Process
-- Data was initially loaded into Python for preprocessing and then imported into the raw data layer of SQL Server.
+- Data was initially loaded into Python for preprocessing and then imported into the raw data layer of MS SQL Server.
 
 ### Data Cleaning
 - **Title Column**: Converted from `varchar` to `nvarchar` to support foreign characters and ensure visibility and correct representation of all characters.
